@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TradeType {
+  BUY
+  SELL
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  cashBalance  Decimal  @default(100000.00) @db.Decimal(15,2)
+  createdAt    DateTime @default(now())
+
+  holdings   Holding[]
+  trades     Trade[]
+  watchlists Watchlist[]
+
+  @@map("users")
+}
+
+model Holding {
+  id           String  @id @default(uuid())
+  userId       String
+  symbol       String
+  quantity     Int
+  averagePrice Decimal @db.Decimal(15,2)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, symbol])
+  @@map("holdings")
+}
+
+model Trade {
+  id          String    @id @default(uuid())
+  userId      String
+  symbol      String
+  tradeType   TradeType
+  quantity    Int
+  price       Decimal   @db.Decimal(15,2)
+  totalAmount Decimal   @db.Decimal(15,2)
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("trades")
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items WatchlistItem[]
+
+  @@map("watchlists")
+}
+
+model WatchlistItem {
+  id          String @id @default(uuid())
+  watchlistId String
+  symbol      String
+
+  watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  @@unique([watchlistId, symbol])
+  @@map("watchlist_items")
+}
