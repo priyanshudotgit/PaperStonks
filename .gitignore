@@ -30,28 +30,39 @@
 **/.vercel
 
 # Prisma generated client
-**/src/generated/prisma
+**/prisma/generated/prisma
 
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
 # Logs
+**/*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Misc
+# Misc & Credentials
 *.pem
+*.key
 
-# IDE
+# IDE & Editor files
 .vscode/
 .idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+.history/
+.eslintcache
 
 # Optional: local database files
 *.sqlite
