@@ -4,14 +4,15 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import GuestRoute from "./components/GuestRoute.jsx";
 
 import DashboardPage from "./pages/DashboardPage.jsx";
+import HoldingsPage from "./pages/HoldingsPage.jsx";
+import TradesPage from "./pages/TradesPage.jsx";
 import LandingPage from "./pages/LandingPage.jsx";
-import LoginPage from "./pages/LoginPage.jsx";
-import RegisterPage from "./pages/RegisterPage.jsx";
+import AuthPage from "./pages/AuthPage.jsx";
 
 export default function App() {
   return (
     <Routes>
-      {/* Protected — authenticated users only */}
+      {/* Protected */}
       <Route
         path="/"
         element={
@@ -20,8 +21,24 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/holdings"
+        element={
+          <ProtectedRoute>
+            <HoldingsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/trades"
+        element={
+          <ProtectedRoute>
+            <TradesPage />
+          </ProtectedRoute>
+        }
+      />
 
-      {/* Guest — unauthenticated users only */}
+      {/* Protection not required */}
       <Route
         path="/paper"
         element={
@@ -34,7 +51,7 @@ export default function App() {
         path="/login"
         element={
           <GuestRoute>
-            <LoginPage />
+            <AuthPage />
           </GuestRoute>
         }
       />
@@ -42,12 +59,12 @@ export default function App() {
         path="/register"
         element={
           <GuestRoute>
-            <RegisterPage />
+            <AuthPage />
           </GuestRoute>
         }
       />
 
-      {/* Catch-all → redirect to root */}
+      {/* Fallback route */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
