@@ -1,259 +1,181 @@
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
-const MOCK_TICKER = [
-  { symbol: "AAPL", price: "198.45", change: "+2.31%" },
-  { symbol: "TSLA", price: "267.12", change: "+4.18%" },
-  { symbol: "MSFT", price: "442.58", change: "-0.87%" },
-  { symbol: "GOOGL", price: "178.90", change: "+1.24%" },
-  { symbol: "AMZN", price: "193.67", change: "+0.56%" },
-  { symbol: "NVDA", price: "135.22", change: "+3.74%" },
-  { symbol: "META", price: "512.40", change: "-1.12%" },
-  { symbol: "NFLX", price: "684.33", change: "+1.91%" },
-];
+const FadeIn = ({ children, delay = 0, className = "" }) => {
+  const [isVisible, setIsVisible] = useState(false);
 
-const FEATURES = [
-  {
-    icon: "📊",
-    title: "Real-Time Prices",
-    desc: "Track live stock prices and make trades based on actual market data.",
-  },
-  {
-    icon: "💰",
-    title: "$100K Virtual Cash",
-    desc: "Start with $100,000 in virtual money. No risk, all the learning.",
-  },
-  {
-    icon: "📈",
-    title: "Portfolio Tracking",
-    desc: "Watch your holdings grow with detailed performance analytics.",
-  },
-  {
-    icon: "🔔",
-    title: "Custom Watchlists",
-    desc: "Curate watchlists to monitor your favourite stocks at a glance.",
-  },
-];
+  useEffect(() => {
+    const timer = setTimeout(() => setIsVisible(true), delay);
+    return () => clearTimeout(timer);
+  }, [delay]);
 
-function TickerBar() {
-  const doubled = [...MOCK_TICKER, ...MOCK_TICKER];
   return (
-    <div className="overflow-hidden border-y border-white/5 py-3">
-      <div className="animate-ticker flex whitespace-nowrap gap-10">
-        {doubled.map((t, i) => (
-          <span key={i} className="flex items-center gap-2 text-sm font-medium">
-            <span className="text-white/60">{t.symbol}</span>
-            <span className="text-white">${t.price}</span>
-            <span className={t.change.startsWith("+") ? "text-gain" : "text-loss"}>
-              {t.change}
-            </span>
-          </span>
-        ))}
-      </div>
+    <div
+      className={`transition-all duration-700 ease-out transform ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      } ${className}`}
+    >
+      {children}
     </div>
   );
-}
-
-function MiniChart({ color = "#29a4ff", height = 60 }) {
-  // Simple SVG sparkline
-  const points = [20, 35, 25, 45, 38, 55, 48, 60, 50, 65, 58, 72, 65, 70];
-  const w = 200;
-  const step = w / (points.length - 1);
-  const path = points.map((p, i) => `${i === 0 ? "M" : "L"} ${i * step} ${height - (p / 80) * height}`).join(" ");
-
-  return (
-    <svg viewBox={`0 0 ${w} ${height}`} className="w-full" style={{ height }}>
-      <defs>
-        <linearGradient id={`grad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d={`${path} L ${w} ${height} L 0 ${height} Z`}
-        fill={`url(#grad-${color.replace("#", "")})`}
-      />
-      <path d={path} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+};
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* ── Navbar ── */}
-      <nav className="glass sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          <Link to="/paper" className="flex items-center gap-2.5">
-            <span className="text-2xl">📈</span>
-            <span className="text-xl font-bold bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
-              PaperStonks
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              id="nav-login-btn"
-              className="px-5 py-2 text-sm font-medium text-white/80 hover:text-white transition-colors"
-            >
+    <div className="bg-gray-50 text-gray-900 font-sans antialiased overflow-x-hidden min-h-screen flex flex-col">
+      {/* 1. Navbar Section */}
+      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+        <div className="flex justify-between items-center w-full px-6 md:px-12 py-4 max-w-7xl mx-auto">
+          <div className="text-2xl font-bold text-black tracking-tight">
+            PaperStonks
+          </div>
+          <div className="hidden md:flex space-x-8">
+            <a className="text-gray-600 font-medium hover:text-black transition-colors text-sm" href="#platform">Platform</a>
+            <a className="text-gray-600 font-medium hover:text-black transition-colors text-sm" href="#market-data">Market Data</a>
+            <a className="text-gray-600 font-medium hover:text-black transition-colors text-sm" href="#education">Education</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <Link to="/login" className="text-gray-600 font-medium hover:text-black transition-colors text-sm hidden md:block">
               Log In
             </Link>
-            <Link
-              to="/register"
-              id="nav-register-btn"
-              className="px-5 py-2 text-sm font-semibold rounded-lg bg-brand-600 hover:bg-brand-500 text-white transition-all hover:shadow-lg hover:shadow-brand-600/25"
-            >
-              Get Started
+            <Link to="/register" className="bg-black text-white hover:bg-gray-800 transition-colors rounded-lg px-4 py-2 text-sm font-medium shadow-sm flex items-center justify-center">
+              Start Trading
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* ── Ticker ── */}
-      <TickerBar />
-
-      {/* ── Hero ── */}
-      <section className="relative flex-1 flex items-center overflow-hidden">
-        {/* Background glow blobs */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-brand-600/10 blur-[120px]" />
-          <div className="absolute -bottom-60 right-0 w-[600px] h-[600px] rounded-full bg-brand-500/8 blur-[150px]" />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 py-24 lg:py-32 grid lg:grid-cols-2 gap-16 items-center relative z-10">
-          {/* Left — Copy */}
-          <div>
-            <div className="animate-fade-in inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-500/30 bg-brand-500/10 text-brand-300 text-xs font-medium mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-gain animate-pulse-glow" />
-              Markets are open
+      {/* 2. Hero Section */}
+      <main className="flex-grow pt-[80px]">
+        <section className="relative  flex items-center overflow-hidden py-16">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 w-full relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            {/* Left Content */}
+            <div className="flex flex-col items-start gap-6">
+              <FadeIn delay={300}>
+                <h1 className="text-4xl md:text-3xl font-bold text-black leading-tight bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+                  Master the Stock Market Without Risking Real Money
+                </h1>
+              </FadeIn>
+              
+              <FadeIn delay={500}>
+                <p className="text-lg text-gray-600">
+                  Experience the thrill of trading with a ₹100,000 virtual portfolio. Our professional grade platform provides real-time market data in a completely risk-free environment.
+                </p>
+              </FadeIn>
+              
+              <FadeIn delay={700} className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                <Link to="/register" className="bg-black text-white hover:bg-gray-800 transition-colors rounded-lg px-6 py-3 text-sm font-medium shadow-md flex items-center justify-center gap-2">
+                  Start Trading Free
+                  <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                </Link>
+                <button className="bg-white text-black border border-gray-300 hover:bg-gray-50 transition-colors rounded-lg px-6 py-3 text-sm font-medium shadow-sm flex items-center justify-center gap-2">
+                  <span className="material-symbols-outlined text-lg">play_circle</span>
+                  View Demo
+                </button>
+              </FadeIn>
             </div>
 
-            <h1 className="animate-fade-in-up text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight">
-              Master the market
-              <br />
-              <span className="bg-gradient-to-r from-brand-400 via-brand-500 to-brand-600 bg-clip-text text-transparent animate-gradient">
-                without the risk.
-              </span>
-            </h1>
-
-            <p className="animate-fade-in-up delay-200 mt-6 text-lg text-white/50 leading-relaxed max-w-lg">
-              PaperStonks gives you $100,000 in virtual cash to practice stock trading.
-              Build strategies, track portfolios, and learn — all with zero financial risk.
-            </p>
-
-            <div className="animate-fade-in-up delay-300 flex items-center gap-4 mt-10">
-              <Link
-                to="/register"
-                id="hero-cta-btn"
-                className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-500 text-white font-semibold shadow-xl shadow-brand-600/20 hover:shadow-brand-500/30 hover:scale-[1.02] transition-all"
-              >
-                Start Trading Free
-              </Link>
-              <Link
-                to="/login"
-                className="px-6 py-3.5 rounded-xl border border-white/10 text-white/70 font-medium hover:border-white/20 hover:text-white transition-all"
-              >
-                I have an account
-              </Link>
-            </div>
-
-            <div className="animate-fade-in delay-500 flex items-center gap-6 mt-10 text-sm text-white/30">
-              <span className="flex items-center gap-1.5">
-                <span className="text-gain">✓</span> No credit card
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-gain">✓</span> Real market data
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-gain">✓</span> 100% free
-              </span>
-            </div>
-          </div>
-
-          {/* Right — Decorative card */}
-          <div className="hidden lg:block animate-fade-in-up delay-300">
-            <div className="glass rounded-2xl p-6 shadow-2xl shadow-black/40">
-              {/* Mock portfolio header */}
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-xs text-white/40 uppercase tracking-wider">Portfolio Value</p>
-                  <p className="text-3xl font-bold text-white mt-1">$124,832.50</p>
+            {/* Right Content - Mockup */}
+            <FadeIn delay={900} className="relative hidden lg:block">
+              <div className="bg-white/70 backdrop-blur-xl rounded-xl p-6 border border-gray-200 shadow-2xl transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                {/* Mockup Top Bar */}
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center">
+                      <span className="material-symbols-outlined text-gray-500">account_balance_wallet</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500 font-medium">Total Portfolio Value</div>
+                      <div className="text-xl text-black font-semibold">₹124,530.00</div>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                    +24.5% All Time
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gain/10 text-gain text-sm font-semibold">
-                    ↑ +24.83%
-                  </span>
-                  <p className="text-xs text-white/30 mt-1">All time</p>
+
+                {/* Mockup Chart */}
+                <div className="h-48 w-full bg-gray-50 border border-gray-100 rounded-lg mb-6 relative overflow-hidden">
+                  <svg className="absolute bottom-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 400 100">
+                    <path d="M0,100 L0,80 C50,90 100,50 150,60 C200,70 250,30 300,40 C350,50 400,10 400,10 L400,100 Z" fill="url(#gradient-green)" opacity="0.2"></path>
+                    <path d="M0,80 C50,90 100,50 150,60 C200,70 250,30 300,40 C350,50 400,10 400,10" fill="none" stroke="#067647" strokeWidth="2"></path>
+                    <defs>
+                      <linearGradient id="gradient-green" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#067647"></stop>
+                        <stop offset="100%" stopColor="rgba(6, 118, 71, 0)"></stop>
+                      </linearGradient>
+                    </defs>
+                  </svg>
                 </div>
-              </div>
 
-              <MiniChart color="#22c55e" height={80} />
-
-              {/* Mock holdings */}
-              <div className="mt-5 space-y-3">
-                {[
-                  { sym: "AAPL", shares: 45, val: "$8,930.25", chg: "+2.31%" },
-                  { sym: "NVDA", shares: 30, val: "$4,056.60", chg: "+3.74%" },
-                  { sym: "MSFT", shares: 20, val: "$8,851.60", chg: "-0.87%" },
-                ].map((h) => (
-                  <div key={h.sym} className="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-white/[0.03] transition-colors">
+                {/* Mockup Holdings */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-brand-600/20 flex items-center justify-center text-xs font-bold text-brand-400">
-                        {h.sym.slice(0, 2)}
-                      </div>
+                      <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-bold text-gray-700">RELI</div>
                       <div>
-                        <p className="text-sm font-semibold text-white">{h.sym}</p>
-                        <p className="text-xs text-white/30">{h.shares} shares</p>
+                        <div className="text-sm text-black font-medium">Reliance Ind.</div>
+                        <div className="text-xs text-gray-500">15 Shares</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-white">{h.val}</p>
-                      <p className={`text-xs font-medium ${h.chg.startsWith("+") ? "text-gain" : "text-loss"}`}>
-                        {h.chg}
-                      </p>
+                      <div className="text-sm text-black font-mono font-medium">₹37,500.00</div>
+                      <div className="text-xs text-green-700 font-medium">+5.2%</div>
                     </div>
                   </div>
-                ))}
+                  
+                  <div className="flex justify-between items-center p-3 bg-white border border-gray-100 rounded-lg shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center text-xs font-bold text-gray-700">HDFC</div>
+                      <div>
+                        <div className="text-sm text-black font-medium">HDFC Bank</div>
+                        <div className="text-xs text-gray-500">20 Shares</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-black font-mono font-medium">₹32,000.00</div>
+                      <div className="text-xs text-red-600 font-medium">-1.4%</div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </FadeIn>
+            
+          </div>
+        </section>
+      </main>
+
+      {/* 3. Footer Section */}
+      <footer className="w-full border-t border-gray-200 bg-white text-gray-800">
+        <div className="w-full px-6 md:px-12 py-12 flex flex-col md:flex-row justify-between items-start gap-12 max-w-7xl mx-auto">
+          <div className="flex flex-col gap-3">
+            <div className="text-xl font-bold text-black">
+              PaperStonks
+            </div>
+            <div className="text-sm text-gray-500 mt-2">
+              © 2026 PaperStonks. Professional Paper Trading for the Modern Era.
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ── Features ── */}
-      <section className="relative py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold text-white">
-              Everything you need to{" "}
-              <span className="text-brand-400">start trading</span>
-            </h2>
-            <p className="mt-4 text-white/40 max-w-xl mx-auto">
-              No sign-up fees, no hidden costs. Just a platform built for learning.
-            </p>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-12 w-full md:w-auto">
+            <div className="flex flex-col gap-3">
+              <span className="text-sm text-black font-bold mb-2">Product</span>
+              <a className="text-gray-500 hover:text-black text-sm transition-colors" href="#features">Features</a>
+              <a className="text-gray-500 hover:text-black text-sm transition-colors" href="#pricing">Pricing</a>
+            </div>
+            <div className="flex flex-col gap-3">
+              <span className="text-sm text-black font-bold mb-2">Company</span>
+              <a className="text-gray-500 hover:text-black text-sm transition-colors" href="#about">About</a>
+              <a className="text-gray-500 hover:text-black text-sm transition-colors" href="#contact">Contact</a>
+            </div>
+            <div className="flex flex-col gap-3 col-span-2 md:col-span-1">
+              <span className="text-sm text-black font-bold mb-2">Legal</span>
+              <a className="text-gray-500 hover:text-black text-sm transition-colors" href="#privacy">Privacy Policy</a>
+              <a className="text-gray-500 hover:text-black text-sm transition-colors" href="#terms">Terms of Service</a>
+            </div>
           </div>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((f, i) => (
-              <div
-                key={f.title}
-                className={`animate-fade-in-up delay-${(i + 1) * 100} glass-light rounded-2xl p-6 hover:border-brand-500/20 transition-all group`}
-              >
-                <div className="text-3xl mb-4 group-hover:scale-110 transition-transform">
-                  {f.icon}
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{f.title}</h3>
-                <p className="text-sm text-white/40 leading-relaxed">{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer className="border-t border-white/5 py-8">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between text-sm text-white/30">
-          <span>© {new Date().getFullYear()} PaperStonks</span>
-          <span>Built for learning. Not financial advice.</span>
         </div>
       </footer>
     </div>
