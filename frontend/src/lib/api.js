@@ -16,10 +16,9 @@ async function request(path, options = {}, _retried = false) {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
-    credentials: "include", // send cookies (refresh token)
+    credentials: "include",
   });
 
-  // If 401 and we haven't retried yet, try silent refresh
   if (res.status === 401 && !_retried) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
@@ -39,6 +38,10 @@ export async function apiPost(path, body) {
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+export async function apiDelete(path) {
+  return request(path, { method: "DELETE" });
 }
 
 export async function login(email, password) {
@@ -73,7 +76,7 @@ export async function register(name, email, password) {
     throw new Error(data.message || "Registration failed");
   }
 
-  localStorage.setItem("accessToken", data.accessToken);
+  accessToken = data.accessToken;
   return data;
 }
 
@@ -111,4 +114,89 @@ export async function refreshAccessToken() {
   } catch {
     return false;
   }
+}
+
+export async function getWatchlists() {
+  const res = await apiGet("/watchlist");
+  if (!res.ok) throw new Error("Failed to fetch watchlists");
+  return res.json();
+}
+
+export async function addStockToWatchlist(watchlistId, symbol, instrumentKey) {
+  const res = await apiPost(`/watchlist/${watchlistId}/items`, { symbol, instrumentKey });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to add stock");
+  }
+  return res.json();
+}
+
+export async function removeStockFromWatchlist(watchlistId, symbol) {
+  const res = await apiDelete(`/watchlist/${watchlistId}/items/${symbol}`);
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to remove stock");
+  }
+  return res.json();
+}
+
+export async function searchStocks(query) {
+  const res = await apiGet(`/search?q=${encodeURIComponent(query)}`);
+  if (!res.ok) throw new Error("Search failed");
+  return res.json();
+}
+
+export async function getMarketStatus() {
+  const res = await apiGet("/market/status");
+  if (!res.ok) throw new Error("Failed to fetch market status");
+  return res.json();
+}
+
+export async function getHistoricalCandles(instrumentKey, interval) {
+  const res = await apiGet(
+    `/market/history?instrumentKey=${encodeURIComponent(instrumentKey)}&interval=${encodeURIComponent(interval)}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch historical candles");
+  return res.json();
+}
+
+export async function getQuote(instrumentKey) {
+  const res = await apiGet(
+    `/market/quote?instrumentKey=${encodeURIComponent(instrumentKey)}`
+  );
+  if (!res.ok) throw new Error("Failed to fetch quote");
+  return res.json();
+}
+
+export async function buyStock(symbol, quantity, price, instrumentKey) {
+  const res = await apiPost("/trade/buy", { symbol, quantity, price, instrumentKey });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Buy failed");
+  return data;
+}
+
+export async function sellStock(symbol, quantity, price, instrumentKey) {
+  const res = await apiPost("/trade/sell", { symbol, quantity, price, instrumentKey });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Sell failed");
+  return data;
+}
+
+export async function getTrades() {
+  const res = await apiGet("/trade");
+  if (!res.ok) throw new Error("Failed to fetch trades");
+  return res.json();
+}
+
+export async function getHoldings() {
+  const res = await apiGet("/holdings");
+  if (!res.ok) throw new Error("Failed to fetch holdings");
+  return res.json();
+}
+
+export async function resetBalance() {
+  const res = await apiPost("/holdings/reset-balance");
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Reset failed");
+  return data;
 }

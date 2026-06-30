@@ -7,7 +7,6 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Attempt silent session restore on mount
   useEffect(() => {
     let cancelled = false;
 
@@ -24,7 +23,7 @@ export function AuthProvider({ children }) {
           setUser(data.user);
         }
       } catch {
-        // Not authenticated — that's fine
+        console.log("Not Authenticated");
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -51,6 +50,31 @@ export function AuthProvider({ children }) {
     setUser(null);
   }, []);
 
+  const updateBalance = useCallback((newBalance) => {
+    setUser((prev) => prev ? { ...prev, cashBalance: newBalance } : prev);
+  }, []);
+
+  const [isMarketOpen, setIsMarketOpen] = useState(false);
+  const [marketStatusLoaded, setMarketStatusLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchMarketStatus() {
+      try {
+        const data = await api.getMarketStatus();
+        if (!cancelled) {
+          setIsMarketOpen(data.isOpen);
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        if (!cancelled) setMarketStatusLoaded(true);
+      }
+    }
+    fetchMarketStatus();
+    return () => { cancelled = true; };
+  }, []);
+
   const value = {
     user,
     isAuthenticated: !!user,
@@ -58,6 +82,9 @@ export function AuthProvider({ children }) {
     login,
     register,
     logout,
+    updateBalance,
+    isMarketOpen,
+    marketStatusLoaded,
   };
 
   return (
