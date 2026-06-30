@@ -38,6 +38,7 @@ model Holding {
   symbol       String
   quantity     Int
   averagePrice Decimal @db.Decimal(15,2)
+  instrumentKey String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -53,6 +54,9 @@ model Trade {
   quantity    Int
   price       Decimal   @db.Decimal(15,2)
   totalAmount Decimal   @db.Decimal(15,2)
+  instrumentKey String?
+  buyPrice    Decimal?  @db.Decimal(15,2)
+  realizedProfit Decimal? @db.Decimal(15,2)
   createdAt   DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -74,9 +78,10 @@ model Watchlist {
 }
 
 model WatchlistItem {
-  id          String @id @default(uuid())
-  watchlistId String
-  symbol      String
+  id            String  @id @default(uuid())
+  watchlistId   String
+  symbol        String
+  instrumentKey String?
 
   watchlist Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
 

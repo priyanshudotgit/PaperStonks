@@ -1,16 +1,16 @@
 import { prisma } from "../db/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { defaultWatchlist } from "../constants/defaultWatchlist.js";
 
-// Helper to generate tokens
 function generateAccessToken(userId) {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    return jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: "15m",
     });
 }
 
 function generateRefreshToken(userId) {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: "7d",
     });
 }
@@ -19,7 +19,7 @@ function setRefreshCookie(res, token) {
     res.cookie("refreshToken", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 }
@@ -49,18 +49,44 @@ export async function register(req, res) {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        const user = await prisma.user.create({
-            data: {
-                name,
-                email,
-                passwordHash,
-            },
-        });
+        const user = await prisma.$transaction(async (tx) => {
+            const newUser = await tx.user.create({
+                data: {
+                    name,
+                    email,
+                    passwordHash,
+                },
+            });
+
+            const watchlist = await tx.watchlist.create({
+                data: {
+                    userId: newUser.id,
+                    name: "My Watchlist",
+                    isDefault: true
+                }
+            });
+
+            await tx.watchlistItem.createMany({
+                data: defaultWatchlist.map(item => ({
+                    watchlistId: watchlist.id,
+                    symbol: item.symbol,
+                    instrumentKey: item.instrumentKey
+                }))
+            });
+
+            return newUser;
+        })
 
         const accessToken = generateAccessToken(user.id);
         const refreshToken = generateRefreshToken(user.id);
 
         setRefreshCookie(res, refreshToken);
+
+        const { upstoxService } = await import("../services/upstox.service.js");
+        const keysToSubscribe = defaultWatchlist.map(item => item.instrumentKey).filter(Boolean);
+        if (keysToSubscribe.length > 0) {
+            upstoxService.subscribe(keysToSubscribe);
+        }
 
         return res.status(201).json({
             success: true,
@@ -141,7 +167,7 @@ export async function login(req, res) {
     }
 }
 
-// GET /api/auth/me  (protected)
+// GET /api/auth/me
 export async function getMe(req, res) {
     try {
         const user = await prisma.user.findUnique({
@@ -189,7 +215,7 @@ export async function refreshToken(req, res) {
             });
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
 
         // Verify the user still exists
         const user = await prisma.user.findUnique({
@@ -229,7 +255,7 @@ export async function logout(req, res) {
         res.clearCookie("refreshToken", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
+            sameSite: "lax",
         });
 
         return res.status(200).json({
